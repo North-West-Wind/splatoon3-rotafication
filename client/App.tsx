@@ -1,7 +1,12 @@
 import React from "react";
+import TopBar from "./components/TopBar";
+import Configuration from "./components/Configuration";
 
 const App: React.FC = () => {
-  return <h1>TypeScript is awesome</h1>;
+  return <>
+    <TopBar />
+    <Configuration />
+  </>;
 };
 
 export default App;

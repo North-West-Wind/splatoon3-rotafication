@@ -1,0 +1,9 @@
+@font-face {
+	font-family: Splatoon1;
+	src: url(assets/fonts/BlitzBold.otf);
+}
+
+@font-face {
+	font-family: Splatoon2;
+	src: url(assets/fonts/BlitzMain.otf);
+}
