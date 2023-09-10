@@ -8,8 +8,8 @@ type VsStage = {
 }
 
 type VsRule = {
-	name: string;
-	rule: string;
+	name: "Turf War" | "Splat Zones";
+	rule: "TURF_WAR" | "AREA";
 	id: string;
 }
 

@@ -1,0 +1,68 @@
+/* Custom rodal animations */
+
+/* -- tv -- */
+@-webkit-keyframes rodal-tv-enter {
+  from {
+    -webkit-transform: scale3d(0, 0, 0.1);
+    transform: scale3d(0, 0, 0.1);
+  }
+
+  30% {
+    -webkit-transform: scale3d(0, 0.1, 1);
+    transform: scale3d(0, 0.1, 1);
+  }
+
+	70% {
+    -webkit-transform: scale3d(1, 0.1, 1);
+    transform: scale3d(1, 0.1, 1);
+	}
+}
+
+@keyframes rodal-tv-enter {
+  from {
+    -webkit-transform: scale3d(0, 0, 0.1);
+    transform: scale3d(0, 0, 0.1);
+  }
+
+  30% {
+    -webkit-transform: scale3d(0, 0.1, 1);
+    transform: scale3d(0, 0.1, 1);
+  }
+
+	70% {
+    -webkit-transform: scale3d(1, 0.1, 1);
+    transform: scale3d(1, 0.1, 1);
+	}
+}
+
+.rodal-tv-enter {
+  -webkit-animation: rodal-tv-enter both cubic-bezier(0.4, 0, 0, 1.5);
+  animation: rodal-tv-enter both cubic-bezier(0.4, 0, 0, 1.5);
+}
+
+@-webkit-keyframes rodal-tv-leave {
+  40% {
+    -webkit-transform: scale3d(1, 0.1, 1);
+    transform: scale3d(1, 0.1, 1);
+  }
+  to {
+    -webkit-transform: scale3d(0, 0, 0.1);
+    transform: scale3d(0, 0, 0.1);
+  }
+}
+
+@keyframes rodal-tv-leave {
+  40% {
+    -webkit-transform: scale3d(1, 0.1, 1);
+    transform: scale3d(1, 0.1, 1);
+  }
+  to {
+    -webkit-transform: scale3d(0, 0, 0.1);
+    transform: scale3d(0, 0, 0.1);
+  }
+}
+
+.rodal-tv-leave {
+  -webkit-animation: rodal-tv-leave both;
+  animation: rodal-tv-leave both;
+}

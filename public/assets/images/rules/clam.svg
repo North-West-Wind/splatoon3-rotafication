@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   enable-background="new 0 0 35 35"
+   width="35"
+   height="35"
+   viewBox="0 0 35 35"
+   version="1.1"
+   id="svg12"
+   sodipodi:docname="clam.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     id="namedview12"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="21.457143"
+     inkscape:cx="17.5"
+     inkscape:cy="17.5"
+     inkscape:window-width="1920"
+     inkscape:window-height="1002"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg12" />
+  <linearGradient
+     id="a"
+     gradientUnits="userSpaceOnUse"
+     x1="17.5"
+     x2="17.5"
+     y1="27.9285"
+     y2="5.604"
+     gradientTransform="matrix(0.99166402,0,0,0.99166402,0.0617756,0.19546285)">
+    <stop
+       offset="0"
+       stop-color="#ff0"
+       id="stop1" />
+    <stop
+       offset="1"
+       stop-color="#e6a100"
+       id="stop2" />
+  </linearGradient>
+  <clipPath
+     id="b">
+    <path
+       d="m30.1 11.9c-2.1-2-5.1-3.9-7.2-4.8-2-.9-3.7-1.4-5.3-1.5-1.6 0-3.3.6-5.3 1.5-2.1.9-5 2.8-7.2 4.8-2.6 2.3-5 7.8-.2 12.4 3.5 3.3 8.3 3.7 12.7 3.7 4.4 0 9.2-.4 12.7-3.7 4.8-4.6 2.3-10.1-.2-12.4z"
+       id="path2" />
+  </clipPath>
+  <linearGradient
+     id="c">
+    <stop
+       offset="0"
+       stop-color="#f30"
+       id="stop3" />
+    <stop
+       offset="1"
+       stop-color="#6fff00"
+       id="stop4" />
+  </linearGradient>
+  <linearGradient
+     id="d"
+     gradientUnits="userSpaceOnUse"
+     x1="-247.0052"
+     x2="60.5887"
+     xlink:href="#c"
+     y1="115.3861"
+     y2="3.4311" />
+  <linearGradient
+     id="e"
+     gradientUnits="userSpaceOnUse"
+     x1="-247.7403"
+     x2="59.8537"
+     xlink:href="#c"
+     y1="113.9912"
+     y2="2.0361" />
+  <clipPath
+     id="f">
+    <path
+       d="m30.1 11.9c-2.1-2-5.1-3.9-7.2-4.8-2-.9-3.7-1.4-5.3-1.5-1.6 0-3.3.6-5.3 1.5-2.1.9-5 2.8-7.2 4.8-2.6 2.3-5 7.8-.2 12.4 3.5 3.3 8.3 3.7 12.7 3.7 4.4 0 9.2-.4 12.7-3.7 4.8-4.6 2.3-10.1-.2-12.4z"
+       id="path4" />
+  </clipPath>
+  <linearGradient
+     id="g"
+     gradientUnits="userSpaceOnUse"
+     x1="-141.5869"
+     x2="56.9003"
+     xlink:href="#c"
+     y1="128.7739"
+     y2="56.5305" />
+  <linearGradient
+     id="h"
+     gradientUnits="userSpaceOnUse"
+     x1="-140.2441"
+     x2="58.2431"
+     xlink:href="#c"
+     y1="132.4633"
+     y2="60.2198" />
+  <linearGradient
+     id="i"
+     gradientUnits="userSpaceOnUse"
+     x1="-138.8364"
+     x2="59.6508"
+     xlink:href="#c"
+     y1="136.3308"
+     y2="64.0874" />
+  <linearGradient
+     id="j"
+     gradientUnits="userSpaceOnUse"
+     x1="-161.1239"
+     x2="37.3633"
+     xlink:href="#c"
+     y1="75.0965"
+     y2="2.8531" />
+  <path
+     d="M 29.315865,13.78126 C 27.23337,11.897098 24.357544,10.012937 22.374216,9.1204391 20.390888,8.2279415 18.804226,7.7321094 17.217564,7.7321094 c -1.586663,0 -3.173325,0.4958321 -5.156653,1.3883297 -1.983328,0.8924979 -4.8591544,2.7766589 -6.9416488,4.6608209 -2.4791601,2.280827 -4.8591538,7.536646 -0.1983328,11.899968 3.3716576,3.173325 8.0324786,3.56999 12.2966346,3.56999 4.264155,0 8.924976,-0.396665 12.296633,-3.56999 4.660821,-4.363322 2.379994,-9.619141 -0.198332,-11.899968 z"
+     fill="#7f7c1b"
+     id="path5"
+     style="stroke-width:0.991664" />
+  <path
+     d="M 29.910863,11.996264 C 27.828369,10.012937 24.853376,8.1287751 22.770882,7.2362774 20.787554,6.3437798 19.101725,5.8479478 17.515063,5.7487814 c -1.586663,0 -3.272492,0.5949984 -5.25582,1.487496 -2.082494,0.8924977 -4.95832,2.7766596 -7.1399808,4.7599866 -2.5783265,2.280828 -4.9583202,7.73498 -0.1983328,12.296634 3.470824,3.272491 8.2308116,3.669157 12.5941336,3.669157 4.363321,0 9.123309,-0.396666 12.594133,-3.669157 4.759987,-4.561654 2.280827,-10.015806 -0.198333,-12.296634 z"
+     fill="url(#a)"
+     id="path6"
+     style="fill:url(#a);stroke-width:0.991664" />
+  <g
+     clip-path="url(#b)"
+     fill="none"
+     stroke="#605650"
+     stroke-miterlimit="10"
+     stroke-width="4.5691"
+     id="g8"
+     transform="matrix(0.99166402,0,0,0.99166402,0.0617756,0.19546285)">
+    <circle
+       cx="-34.200001"
+       cy="89.699997"
+       r="97"
+       id="circle6" />
+    <circle
+       cx="-40.799999"
+       cy="96.300003"
+       r="97"
+       id="circle7" />
+    <circle
+       cx="-47.700001"
+       cy="103.2"
+       r="97"
+       id="circle8" />
+  </g>
+  <ellipse
+     cx="13.15174"
+     cy="11.698767"
+     fill="#cccccc"
+     opacity="0.4"
+     rx="3.2724912"
+     ry="2.7766593"
+     id="ellipse8"
+     style="stroke-width:0.991664" />
+  <g
+     opacity="0.1"
+     id="g12"
+     transform="matrix(0.99166402,0,0,0.99166402,0.0617756,0.19546285)">
+    <path
+       d="m 29.5,13.7 c -2.1,-1.9 -5,-3.8 -7,-4.7 -2,-0.9 -3.6,-1.4 -5.2,-1.4 -1.6,0 -3.2,0.5 -5.2,1.4 -2,0.9 -4.9,2.8 -7,4.7 -2.5,2.3 -4.9,7.6 -0.2,12 3.4,3.2 8.1,3.6 12.4,3.6 4.3,0 9,-0.4 12.4,-3.6 4.7,-4.4 2.4,-9.7 -0.2,-12 z"
+       fill="url(#d)"
+       id="path8"
+       style="fill:url(#d)" />
+    <path
+       d="M 30.1,11.9 C 28,9.9 25,8 22.9,7.1 20.9,6.2 19.2,5.7 17.6,5.6 16,5.6 14.3,6.2 12.3,7.1 10.2,8 7.3,9.9 5.1,11.9 c -2.6,2.3 -5,7.8 -0.2,12.4 3.5,3.3 8.3,3.7 12.7,3.7 4.4,0 9.2,-0.4 12.7,-3.7 4.8,-4.6 2.3,-10.1 -0.2,-12.4 z"
+       fill="url(#e)"
+       id="path9"
+       style="fill:url(#e)" />
+    <g
+       clip-path="url(#f)"
+       id="g11">
+      <circle
+         cx="-34.200001"
+         cy="89.699997"
+         fill="url(#g)"
+         r="97"
+         id="circle9"
+         style="fill:url(#g)" />
+      <circle
+         cx="-40.799999"
+         cy="96.300003"
+         fill="url(#h)"
+         r="97"
+         id="circle10"
+         style="fill:url(#h)" />
+      <circle
+         cx="-47.700001"
+         cy="103.2"
+         fill="url(#i)"
+         r="97"
+         id="circle11"
+         style="fill:url(#i)" />
+    </g>
+    <ellipse
+       cx="13.2"
+       cy="11.6"
+       fill="url(#j)"
+       rx="3.3"
+       ry="2.8"
+       id="ellipse11"
+       style="fill:url(#j)" />
+  </g>
+</svg>

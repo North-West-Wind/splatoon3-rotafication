@@ -7,5 +7,5 @@ type StageNode = {
 }
 
 export type VsStages = {
-	vsStages: { node: StageNode[] };
+	vsStages: { nodes: StageNode[] };
 }
