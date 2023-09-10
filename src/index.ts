@@ -11,6 +11,7 @@ import isImageURL from "is-image-header";
 import sanitize from "sanitize-filename";
 import { verbose } from "sqlite3";
 import { deepEquality } from "@santi100/equal-lib";
+import { RotaficationFilter } from "./types/rotafication";
 const sqlite3 = verbose();
 
 // Stage thumbnail cache setup
@@ -18,8 +19,9 @@ if (!fs.existsSync("public/cache")) fs.mkdirSync("public/cache");
 
 // Cron job setup
 // One second buffer to make sure splatoon3.ink has updated
-//                       v
-new CronJob("* * * */2 0 1", async () => {
+//                     v
+new CronJob("* * * * 0 1", async () => {
+
 	const res = await fetch("https://splatoon3.ink/data/schedules.json");
 	if (res.ok) {
 		const data = (<Splatoon3InkSchedulesResponse>await res.json()).data;
@@ -37,6 +39,20 @@ new CronJob("* * * */2 0 1", async () => {
 				}
 			}
 		}
+		db.all("SELECT * FROM users WHERE notif_endpoint IS NOT NULL", (err, rows: { id: string, filters: string, notif_endpoint: string, notif_auth: string, notif_p256dh: string }[]) => {
+			if (err) return console.error(err);
+			for (const row of rows) {
+				const subscription = {
+					endpoint: row.notif_endpoint,
+					keys: {
+						auth: row.notif_auth,
+						p256dh: row.notif_p256dh
+					}
+				};
+				const filtersData = <RotaficationFilter>JSON.parse(row.filters);
+
+			}
+		});
 	}
 }, null, true, undefined, null, true, 0);
 
@@ -44,8 +60,15 @@ new CronJob("* * * */2 0 1", async () => {
 const db = new sqlite3.Database("users.db");
 db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", (err, row) => {
 	if (err) throw err;
-	if (!row) db.run("CREATE TABLE users (id CHAR(8) PRIMARY KEY, filters JSON)");
+	if (!row) db.run("CREATE TABLE users (id CHAR(8) PRIMARY KEY, filters JSON NOT NULL, notif_endpoint VARCHAR(255), notif_auth VARCHAR(255), notif_p256dh VARCHAR(255))");
 });
+
+// Web push setup
+webpush.setVapidDetails(
+	process.env.DOMAIN!,
+	process.env.PUBLIC_VAPID_KEY!,
+	process.env.PRIVATE_VAPID_KEY!
+);
 
 // Express setup
 const app = express();
@@ -88,23 +111,44 @@ app.get('/get-thumb/:map', async (req, res) => {
 	else res.sendFile(path.resolve(".", "public/assets/images/uncached-filler.png"));
 });
 
-//Subscriptions
-app.post('/subscribe', jsonParser, (req, res) => {
+// Subscriptions
+app.post("/subscribe", jsonParser, (req, res) => {
+	const auth = req.headers.authorization;
+	if (!auth || !auth.startsWith("Bearer ")) return res.status(400).json({ success: false, error: "Invalid header" });
+	const id = auth.split(" ")[1];
+	if (!/^[\w\d]{12}$/.test(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
 	const subscription = <webpush.PushSubscription>req.body.subscription;
-	const userId = req.body.userId;
-	console.dir(subscription);
-	//TODO: Store subscription keys and userId in DB
-	webpush.setVapidDetails(
-		process.env.DOMAIN!,
-		process.env.PUBLIC_VAPID_KEY!,
-		process.env.PRIVATE_VAPID_KEY!
-	);
-	res.sendStatus(200);
+	db.get("SELECT id FROM users WHERE id = ?", id, (err, row: { id: string }) => {
+		if (err) return res.status(500).json({ success: false, error: err.message });
+		if (!row) db.run("INSERT INTO users VALUES (?, '[]', ?, ?, ?)", [id, subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh], err => {
+			if (err) return res.status(500).json({ success: false, error: err.message });
+			res.json({ success: true });
+		});
+		else db.run("UPDATE users SET notif_endpoint = ?, notif_auth = ?, notif_p256dh = ? WHERE id = ?", [subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh, id], err => {
+			if (err) return res.status(500).json({ success: false, error: err.message });
+			res.json({ success: true });
+		});
+	});
 	const payload = JSON.stringify({
 		title: "Testing... 1, 2, 3!",
 		body: "It looks like push notification is working!"
 	});
 	webpush.sendNotification(subscription, payload);
+});
+
+app.delete("/subscribe", (req, res) => {
+	const auth = req.headers.authorization;
+	if (!auth || !auth.startsWith("Bearer ")) return res.status(400).json({ success: false, error: "Invalid header" });
+	const id = auth.split(" ")[1];
+	if (!/^[\w\d]{12}$/.test(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
+	db.get("SELECT id FROM users WHERE id = ?", id, (err, row: { id: string }) => {
+		if (err) return res.status(500).json({ success: false, error: err.message });
+		if (!row) res.status(404).json({ success: false, error: "User not found" });
+		else db.run("UPDATE users SET notif_endpoint = NULL, notif_auth = NULL, notif_p256dh = NULL WHERE id = ?", id, err => {
+			if (err) return res.status(500).json({ success: false, error: err.message });
+			res.json({ success: true });
+		});
+	});
 });
 
 // Database
@@ -114,10 +158,10 @@ app.get("/filters", (req, res) => {
 	if (!auth || !auth.startsWith("Bearer ")) return res.status(400).json({ success: false, error: "Invalid header" });
 	const id = auth.split(" ")[1];
 	if (!/^[\w\d]{12}$/.test(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
-	db.get("SELECT filters FROM users WHERE id = ?", id, (err, row: { filters: string }) => {
+	db.get("SELECT filters, notif_endpoint FROM users WHERE id = ?", id, (err, row: { filters: string, notif_endpoint?: string }) => {
 		if (err) return res.status(500).json({ success: false, error: err.message });
-		if (!row) res.json({ success: true, filters: [] });
-		else res.json({ success: true, filters: JSON.parse(row.filters) });
+		if (!row) res.json({ success: true, filters: [], notif: false });
+		else res.json({ success: true, filters: JSON.parse(row.filters), notif: !!row.notif_endpoint });
 	});
 });
 
@@ -130,7 +174,7 @@ app.post("/filters", jsonParser, (req, res) => {
 	if (!Array.isArray(filters)) return res.status(400).json({ success: false, error: "Invalid filters" });
 	db.get("SELECT filters FROM users WHERE id = ?", id, (err, row: { filters: any[] }) => {
 		if (err) return res.status(500).json({ success: false, error: err.message });
-		if (!row) db.run("INSERT INTO users VALUES (?, '[]')", id, err => {
+		if (!row) db.run("INSERT INTO users (id, filters) VALUES (?, '[]')", id, err => {
 			if (err) return res.status(500).json({ success: false, error: err.message });
 			res.json({ success: true });
 		});

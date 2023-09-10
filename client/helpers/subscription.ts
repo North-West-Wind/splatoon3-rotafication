@@ -1,50 +1,56 @@
-// Toggle subscription
-const publicVapidKey = process.env.REACT_APP_PUBLIC_VAPID_KEY;
-if (window.Notification) {
-	if (Notification.permission != 'granted') {
-		Notification.requestPermission(() => {
-			if (Notification.permission === 'granted') {
-				getSubscriptionObject().then(subscribe)
-			}
-		}).catch(function (err) {
-			console.log(err);
+export async function registerServiceWorker() {
+	return navigator.serviceWorker
+		.register('/service-worker.js')
+		.then(function (registration) {
+			console.log('Service worker successfully registered.');
+			return registration;
+		})
+		.catch(function (err) {
+			console.error('Unable to register service worker.', err);
 		});
-	}
 }
 
-// Generate subscription object
-async function getSubscriptionObject() {
-	const worker = await navigator.serviceWorker.register('/service-worker-push.js');
-	return await worker.pushManager.subscribe({
-		userVisibleOnly: true,
-		applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-	});
-}
+export async function askPermission() {
+	return new Promise(function (resolve, reject) {
+		const permissionResult = Notification.requestPermission(function (result) {
+			resolve(result);
+		});
 
-// Send subscription to server
-async function subscribe(subscription: PushSubscription, id?: string) {
-	return await fetch(window.location.origin + '/subscribe', {
-		method: 'POST',
-		body: JSON.stringify({
-			subscription: subscription,
-			userId: id || crypto.randomUUID()
-		}),
-		headers: {
-			'content-type': 'application/json'
+		if (permissionResult) {
+			permissionResult.then(resolve, reject);
 		}
-	});
+	}).then((permissionResult) => permissionResult !== 'granted');
 }
 
-// Decoder base64 to uint8
-function urlBase64ToUint8Array(base64String) {
+export async function subscribeUserToPush(pubKey: string) {
+	return navigator.serviceWorker
+		.register('/service-worker.js')
+		.then(function (registration) {
+			const subscribeOptions = {
+				userVisibleOnly: true,
+				applicationServerKey: urlBase64ToUint8Array(pubKey),
+			};
+
+			return registration.pushManager.subscribe(subscribeOptions);
+		})
+		.then(function (pushSubscription) {
+			console.log(
+				'Received PushSubscription: ',
+				JSON.stringify(pushSubscription),
+			);
+			return pushSubscription;
+		});
+}
+
+function urlBase64ToUint8Array(base64String: string) {
 	const padding = '='.repeat((4 - base64String.length % 4) % 4);
 	const base64 = (base64String + padding)
-		.replace(/-/g, '+')
-		.replace(/_/g, '/');
+			.replace(/-/g, '+')
+			.replace(/_/g, '/');
 	const rawData = window.atob(base64);
 	const outputArray = new Uint8Array(rawData.length);
 	for (let i = 0; i < rawData.length; ++i) {
-		outputArray[i] = rawData.charCodeAt(i);
+			outputArray[i] = rawData.charCodeAt(i);
 	}
 	return outputArray;
 }

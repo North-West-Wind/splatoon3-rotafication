@@ -1,17 +1,42 @@
 import Cookies from "js-cookie";
 import React from "react";
+import Toggle from "react-toggle";
+import "react-toggle/style.css";
+import { askPermission, subscribeUserToPush } from "../helpers/subscription";
 
 const ID_LENGTH = 12;
 
 export default class IDConfig extends React.Component {
-	state: { id: string, tmpId?: string, hasCookies: boolean };
+	state: {
+		id: string,
+		tmpId?: string,
+		hasCookies: boolean,
+		canNotification: boolean,
+		hasNotification: boolean,
+		subscribing: boolean, // prevent toggle spam
+		subscribed: boolean
+	};
 
 	constructor(props: object) {
 		super(props);
 
-		if (Cookies.get("gave_me_cookies") && Cookies.get("id")) this.state = { id: Cookies.get("id")!, hasCookies: true };
-		else this.state = { id: Math.random().toString(16).slice(2, ID_LENGTH + 2), hasCookies: !!Cookies.get("gave_me_cookies") };
-		this.updateFilters();
+		if (Cookies.get("gave_me_cookies") && Cookies.get("id")) this.state = {
+			id: Cookies.get("id")!,
+			hasCookies: true,
+			canNotification: 'serviceWorker' in navigator && 'PushManager' in window,
+			hasNotification: Notification.permission === "granted",
+			subscribing: false,
+			subscribed: false
+		};
+		else this.state = {
+			id: Math.random().toString(16).slice(2, ID_LENGTH + 2),
+			hasCookies: !!Cookies.get("gave_me_cookies"),
+			canNotification: 'serviceWorker' in navigator && 'PushManager' in window,
+			hasNotification: Notification.permission === "granted",
+			subscribing: false,
+			subscribed: false
+		};
+		this.updateFilters(this.state.id);
 		window.addEventListener("weHaveCookies", () => {
 			this.setState({ hasCookies: true });
 			Cookies.set("id", this.state.id);
@@ -29,19 +54,56 @@ export default class IDConfig extends React.Component {
 	}
 
 	sync() {
-		if (!this.state.tmpId) return;
-		if (!/^[\w\d]{12}$/.test(this.state.tmpId)) return this.setState({ tmpId: undefined });
-		const tmpId = this.state.tmpId;
-		this.setState({ id: tmpId, tmpId: undefined });
-		if (this.state.hasCookies) Cookies.set("id", tmpId);
-		this.updateFilters();
+		const id = this.state.tmpId || this.state.id;
+		if (!/^[\w\d]{12}$/.test(id)) return this.setState({ tmpId: undefined });
+		this.setState({ id, tmpId: undefined });
+		if (this.state.hasCookies) Cookies.set("id", id);
+		this.updateFilters(id);
 	}
 
-	async updateFilters() {
+	async updateFilters(id: string) {
 		try {
-			const res = await fetch(`/filters`, { headers: { "Authorization": "Bearer " + this.state.id } });
-			if (res.ok) window.dispatchEvent(new CustomEvent("weHaveFilters", { detail: { filters: (await res.json()).filters } }));
+			const res = await fetch(`/filters`, { headers: { "Authorization": "Bearer " + id } });
+			if (res.ok) {
+				const data = await res.json();
+				window.dispatchEvent(new CustomEvent("weHaveFilters", { detail: { filters: data.filters } }));
+				this.setState({ subscribed: data.notif });
+			}
 		} catch (err) { console.error(err); }
+	}
+
+	async toggleNotification() {
+		if (this.state.subscribing) return;
+		this.setState({ subscribing: true });
+		if (!this.state.subscribed) {
+			if (!this.state.hasNotification) {
+				const result = await askPermission();
+				this.setState({ hasNotification: result });
+				if (!result) return this.setState({ subscribing: false });
+			}
+			try {
+				const subscription = await subscribeUserToPush(process.env.REACT_APP_PUBLIC_VAPID_KEY!);
+				const res = await fetch("/subscribe", {
+					method: 'POST',
+			    headers: {
+						"Authorization": "Bearer " + this.state.id,
+			      'Content-Type': 'application/json',
+			    },
+			    body: JSON.stringify({ subscription }),
+				});
+				if (res.ok) this.setState({ subscribed: true });
+			} catch (err) { console.error(err); }
+			this.setState({ subscribing: false });
+		} else {
+			try {
+				const res = await fetch("/subscribe", {
+					method: 'DELETE',
+			    headers: { "Authorization": "Bearer " + this.state.id }
+				});
+				if (res.ok) this.setState({ subscribed: false });
+			} catch (err) { console.error(err); }
+			this.setState({ subscribing: false });
+		}
 	}
 	
 	render() {
@@ -53,7 +115,11 @@ export default class IDConfig extends React.Component {
 			<div className="flex">
 				<input type="text" className="input-id" value={this.state.tmpId || this.state.id} onChange={(e) => this.changeId(e.target.value)} />
 			</div>
-			<div className="flex">
+			<div className="flex flex-vcenter">
+				{this.state.canNotification && <>
+					<Toggle className="toggle" checked={this.state.subscribed} onChange={() => this.toggleNotification()} />
+					<span className="toggle-label">Notifications</span>
+				</>}
 				<div className="button sync" onClick={() => this.sync()}>Sync</div>
 			</div>
 		</div>
