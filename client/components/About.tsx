@@ -1,5 +1,5 @@
 import Cookies from "js-cookie";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 export default class About extends React.Component {
 	state: { hasCookies: boolean };

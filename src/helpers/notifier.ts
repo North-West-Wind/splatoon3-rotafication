@@ -1,8 +1,8 @@
 import { Database } from "sqlite3";
 import webpush from "web-push";
-import { RotaficationFilter, BattleMode, BattleRule, Stage } from "./types/rotafication";
-import { Splatoon3InkSchedules } from "./types/splatoon3ink";
-import { MatchSetting } from "./types/splatoon3ink/vs_schedules";
+import { RotaficationFilter, BattleMode, BattleRule, Stage } from "../types/rotafication";
+import { Splatoon3InkSchedules } from "../types/splatoon3ink";
+import { MatchSetting } from "../types/splatoon3ink/vs_schedules";
 
 const BATTLE_MODES: BattleMode[] = [
 	"regular",

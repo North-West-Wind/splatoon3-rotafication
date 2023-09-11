@@ -5,4 +5,6 @@ self.addEventListener('push', event => {
 		...data,
 		icon: data.icon || "/assets/images/zoomin.png"
 	});
+
+	new Audio("assets/sounds/notif.wav").play();
 });

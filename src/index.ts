@@ -11,8 +11,9 @@ import isImageURL from "is-image-header";
 import sanitize from "sanitize-filename";
 import { verbose } from "sqlite3";
 import { deepEquality } from "@santi100/equal-lib";
-import { BattleMode, BattleRule, RotaficationFilter, Stage } from "./types/rotafication";
-import { notify } from "./notifier";
+import { notify } from "./helpers/notifier";
+import { getId } from "./helpers/express";
+import { createUser, deleteSubscription, getRow, updateFilters, updateSubscription, userExists } from "./helpers/database";
 const sqlite3 = verbose();
 
 // Stage thumbnail cache setup
@@ -77,25 +78,6 @@ app.get("/", (_req, res, next): void => {
 
 const jsonParser = bodyParser.json();
 
-// Thumbnail caching
-app.post('/cache-thumb', jsonParser, async (req, res) => {
-	const url = <string>req.body.url;
-	const name = <string>req.body.name;
-	if (!name) return res.status(400).json({ success: false, error: "No name provided" });
-	if (!url?.startsWith("https://splatoon3.ink/assets/splatnet/v2/stage_img/icon/low_resolution/")) return res.status(400).json({ success: false, error: "Invalid URL" });
-	const isImg = await isImageURL(url);
-	if (!isImg.success) return res.status(500).json({ success: false, error: isImg.message });
-	if (!isImg.isImage) return res.status(400).json({ success: false, error: "Invalid URL" });
-	const resp = await fetch(url);
-	if (!resp.ok) return res.status(resp.status).json({ success: false, error: resp.statusText });
-	try {
-		fs.writeFileSync(`public/cache/${sanitize(name.toLowerCase().replace(/ /g, "_"))}.png`, await resp.buffer());
-		res.json({ success: true });
-	} catch (error) {
-		res.status(500).json({ success: false, error });
-	}
-});
-
 // Retrieve thumbnail
 app.get('/get-thumb/:map', async (req, res) => {
 	const filename = `${sanitize(req.params.map.toLowerCase().replace(/ /g, "_"))}.png`;
@@ -104,81 +86,74 @@ app.get('/get-thumb/:map', async (req, res) => {
 });
 
 // Subscriptions
-app.post("/subscribe", jsonParser, (req, res) => {
-	const auth = req.headers.authorization;
-	if (!auth || !auth.startsWith("Bearer ")) return res.status(400).json({ success: false, error: "Invalid header" });
-	const id = auth.split(" ")[1];
-	if (!/^[\w\d]{12}$/.test(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
+app.post("/subscribe", jsonParser, async (req, res) => {
+	const id = getId(req, res);
+	if (!id) return;
 	const subscription = <webpush.PushSubscription>req.body.subscription;
-	db.get("SELECT id FROM users WHERE id = ?", id, (err, row: { id: string }) => {
-		if (err) return res.status(500).json({ success: false, error: err.message });
-		if (!row) db.run("INSERT INTO users VALUES (?, '[]', ?, ?, ?)", [id, subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh], err => {
-			if (err) return res.status(500).json({ success: false, error: err.message });
-			res.json({ success: true });
+	try {
+		if (!(await userExists(db, id))) await createUser(db, id, { subscription });
+		else await updateSubscription(db, id, subscription);
+		res.json({ success: true });
+		const payload = JSON.stringify({
+			title: "Testing... 1, 2, 3!",
+			body: "It looks like push notification is working!",
+			icon: "/assets/images/zoomin.png"
 		});
-		else db.run("UPDATE users SET notif_endpoint = ?, notif_auth = ?, notif_p256dh = ? WHERE id = ?", [subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh, id], err => {
-			if (err) return res.status(500).json({ success: false, error: err.message });
-			res.json({ success: true });
-		});
-	});
-	const payload = JSON.stringify({
-		title: "Testing... 1, 2, 3!",
-		body: "It looks like push notification is working!",
-		icon: "/assets/images/zoomin.png"
-	});
-	webpush.sendNotification(subscription, payload);
+		webpush.sendNotification(subscription, payload);
+	} catch (err: any) {
+		console.error(err);
+		res.status(500).json({ success: false, error: err.message });
+	}
 });
 
-app.delete("/subscribe", (req, res) => {
-	const auth = req.headers.authorization;
-	if (!auth || !auth.startsWith("Bearer ")) return res.status(400).json({ success: false, error: "Invalid header" });
-	const id = auth.split(" ")[1];
-	if (!/^[\w\d]{12}$/.test(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
-	db.get("SELECT id FROM users WHERE id = ?", id, (err, row: { id: string }) => {
-		if (err) return res.status(500).json({ success: false, error: err.message });
-		if (!row) res.status(404).json({ success: false, error: "User not found" });
-		else db.run("UPDATE users SET notif_endpoint = NULL, notif_auth = NULL, notif_p256dh = NULL WHERE id = ?", id, err => {
-			if (err) return res.status(500).json({ success: false, error: err.message });
+app.delete("/subscribe", async (req, res) => {
+	const id = getId(req, res);
+	if (!id) return;
+	try {
+		if (!(await userExists(db, id))) res.status(404).json({ success: false, error: "User not found" });
+		else {
+			await deleteSubscription(db, id);
 			res.json({ success: true });
-		});
-	});
+		}
+	} catch (err: any) {
+		console.error(err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+app.get("/should-notify", (req, res) => {
+	const id = getId(req, res);
+	if (!id) return;
 });
 
 // Database
 const ID_LENGTH = 12;
-app.get("/filters", (req, res) => {
-	const auth = req.headers.authorization;
-	if (!auth || !auth.startsWith("Bearer ")) return res.status(400).json({ success: false, error: "Invalid header" });
-	const id = auth.split(" ")[1];
-	if (!/^[\w\d]{12}$/.test(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
-	db.get("SELECT filters, notif_endpoint FROM users WHERE id = ?", id, (err, row: { filters: string, notif_endpoint?: string }) => {
-		if (err) return res.status(500).json({ success: false, error: err.message });
+app.get("/filters", async (req, res) => {
+	const id = getId(req, res);
+	if (!id) return;
+	try {
+		const row = <{ filters: string, notif_endpoint?: string }>await getRow(db, id, ["filters", "notif_endpoint"]);
 		if (!row) res.json({ success: true, filters: [], notif: false });
 		else res.json({ success: true, filters: JSON.parse(row.filters), notif: !!row.notif_endpoint });
-	});
+	} catch (err: any) {
+		console.error(err);
+		res.status(500).json({ success: false, error: err.message });
+	}
 });
 
-app.post("/filters", jsonParser, (req, res) => {
-	const auth = req.headers.authorization;
-	if (!auth || !auth.startsWith("Bearer ")) return res.status(400).json({ success: false, error: "Invalid header" });
-	const id = auth.split(" ")[1];
-	if (!/^[\w\d]{12}$/.test(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
+app.post("/filters", jsonParser, async (req, res) => {
+	const id = getId(req, res);
+	if (!id) return;
 	const filters = req.body.filters;
 	if (!Array.isArray(filters)) return res.status(400).json({ success: false, error: "Invalid filters" });
-	db.get("SELECT filters FROM users WHERE id = ?", id, (err, row: { filters: any[] }) => {
-		if (err) return res.status(500).json({ success: false, error: err.message });
-		if (!row) db.run("INSERT INTO users (id, filters) VALUES (?, '[]')", id, err => {
-			if (err) return res.status(500).json({ success: false, error: err.message });
-			res.json({ success: true });
-		});
-		else {
-			if (deepEquality(filters, row.filters)) return res.json({ success: true });
-			db.run("UPDATE users SET filters = ? WHERE id = ?", [JSON.stringify(filters), id], err => {
-				if (err) return res.status(500).json({ success: false, error: err.message });
-				res.json({ success: true });
-			});
-		}
-	});
+	try {
+		const row = <{ filters: any[] }>await getRow(db, id, ["filters"]);
+		if (!row) await createUser(db, id, { filters: JSON.stringify(filters) });
+		else if (!deepEquality(filters, row.filters)) await updateFilters(db, id, JSON.stringify(filters));
+	} catch (err: any) {
+		console.error(err);
+		res.status(500).json({ success: false, error: err.message });
+	}
 });
 
 const PORT = 3000;
