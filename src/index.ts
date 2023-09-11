@@ -19,10 +19,10 @@ const sqlite3 = verbose();
 if (!fs.existsSync("public/cache")) fs.mkdirSync("public/cache");
 
 // Cron job setup
-// One second buffer to make sure splatoon3.ink has updated
-//                     v
 let cachedSchedules: Splatoon3InkSchedules;
-new CronJob("* * * * 0 1", async () => {
+// One second buffer to make sure splatoon3.ink has updated
+//           v
+new CronJob("1 0 * * * *", async () => {
 	const isEvenHour = !(new Date().getHours() % 2);
 	const res = await fetch("https://splatoon3.ink/data/schedules.json");
 	if (res.ok) {
