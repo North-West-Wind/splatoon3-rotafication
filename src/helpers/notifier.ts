@@ -77,6 +77,47 @@ export function notify(db: Database, schedules: Splatoon3InkSchedules) {
 	});
 }
 
+export async function ungrantedNotify(db: Database, schedules: Splatoon3InkSchedules, id: string) {
+	const isEvenHour = !(new Date().getHours() % 2);
+	return new Promise((res, rej) => {
+		db.get("SELECT (id, filters) FROM users WHERE id = ?", id, (err, row: { id: string, filters: string }) => {
+			if (err) return rej(err);
+			for (const filter of <RotaficationFilter[]>JSON.parse(row.filters)) {
+				if (isEvenHour && filter.before % 2) continue;
+				const index = Math.floor((filter.before + 1) * 0.5);
+				let title = "A map-mode combination you're looking for is happening ";
+				if (!filter.before) title += "right now!";
+				else title += `in ${filter.before} hours!`;
+				let notify = false;
+				const modes: BattleMode[] = [];
+				const rules: BattleRule[] = [];
+				const maps = new Set<Stage>();
+				for (const mode of BATTLE_MODES)
+					if (matchNode(mode, schedules.regularSchedules.nodes[index].regularMatchSetting, filter)) {
+						notify = true;
+						modes.push(mode);
+						rules.push(schedules.regularSchedules.nodes[index].regularMatchSetting!.vsRule.rule);
+						for (const stage of schedules.regularSchedules.nodes[index].regularMatchSetting!.vsStages)
+							maps.add(stage.name);
+					}
+				if (notify) {
+					let body = "";
+					body += `Mode(s): ${modes.map(m => MODE_NAME_MAP[m]).join(", ")}\n`;
+					body += `Rule(s): ${rules.map(m => RULE_NAME_MAP[m]).join(", ")}\n`;
+					const mapArr = Array.from(maps);
+					body += `Maps: ${mapArr.join(", ")}`;
+					res({
+						title,
+						body,
+						icon: "/assets/images/zoomin.png",
+						image: `/get-thumb/${mapArr[Math.floor(Math.random() * mapArr.length)]}`
+					});
+				} else res(undefined);
+			}
+		});
+	});
+}
+
 function matchNode(mode: BattleMode, setting: MatchSetting | undefined, filter: RotaficationFilter) {
 	if (!setting) return false;
 	if (filter.mode !== "any" && filter.mode !== mode) return false;

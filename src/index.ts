@@ -7,11 +7,10 @@ import fetch from "node-fetch";
 import path from "path";
 import webpush from "web-push";
 import { Splatoon3InkSchedules, Splatoon3InkSchedulesResponse } from "./types/splatoon3ink";
-import isImageURL from "is-image-header";
 import sanitize from "sanitize-filename";
 import { verbose } from "sqlite3";
 import { deepEquality } from "@santi100/equal-lib";
-import { notify } from "./helpers/notifier";
+import { notify, ungrantedNotify } from "./helpers/notifier";
 import { getId } from "./helpers/express";
 import { createUser, deleteSubscription, getRow, updateFilters, updateSubscription, userExists } from "./helpers/database";
 const sqlite3 = verbose();
@@ -121,9 +120,16 @@ app.delete("/subscribe", async (req, res) => {
 	}
 });
 
-app.get("/should-notify", (req, res) => {
+app.get("/should-notify", async (req, res) => {
 	const id = getId(req, res);
 	if (!id) return;
+	try {
+		if (!(await userExists(db, id))) res.status(404).json({ success: false, error: "User not found" });
+		else res.json({ success: true, notif: await ungrantedNotify(db, cachedSchedules, id) });
+	} catch (err: any) {
+		console.error(err);
+		res.status(500).json({ success: false, error: err.message });
+	}
 });
 
 // Database
