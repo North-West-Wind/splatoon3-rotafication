@@ -6,12 +6,12 @@ import * as fs from "fs";
 import fetch from "node-fetch";
 import path from "path";
 import webpush from "web-push";
-import { Splatoon3InkSchedulesResponse } from "./types/splatoon3ink";
+import { Splatoon3InkSchedules, Splatoon3InkSchedulesResponse } from "./types/splatoon3ink";
 import isImageURL from "is-image-header";
 import sanitize from "sanitize-filename";
 import { verbose } from "sqlite3";
 import { deepEquality } from "@santi100/equal-lib";
-import { RotaficationFilter } from "./types/rotafication";
+import { BattleMode, BattleRule, RotaficationFilter, Stage } from "./types/rotafication";
 const sqlite3 = verbose();
 
 // Stage thumbnail cache setup
@@ -20,22 +20,26 @@ if (!fs.existsSync("public/cache")) fs.mkdirSync("public/cache");
 // Cron job setup
 // One second buffer to make sure splatoon3.ink has updated
 //                     v
+let cachedSchedules: Splatoon3InkSchedules;
 new CronJob("* * * * 0 1", async () => {
-
+	const isEvenHour = !(new Date().getHours() % 2);
 	const res = await fetch("https://splatoon3.ink/data/schedules.json");
 	if (res.ok) {
-		const data = (<Splatoon3InkSchedulesResponse>await res.json()).data;
-		for (const stage of data.vsStages.nodes) {
-			const filename = sanitize(stage.name.toLowerCase().replace(/ /g, "_")) + ".png";
-			if (!fs.existsSync(`public/cache/${filename}`)) {
-				const url = stage.originalImage.url.replace("high", "low").replace("0.png", "1.png");
-				console.log("Caching", url, "as", filename);
-				const resp = await fetch(url);
-				if (!resp.ok) continue;
-				try {
-					fs.writeFileSync(`public/cache/${filename}`, await resp.buffer());
-				} catch (err) {
-					console.error(err);
+		if (isEvenHour) {
+			const data = (<Splatoon3InkSchedulesResponse>await res.json()).data;
+			if (!cachedSchedules) cachedSchedules = data;
+			for (const stage of data.vsStages.nodes) {
+				const filename = sanitize(stage.name.toLowerCase().replace(/ /g, "_")) + ".png";
+				if (!fs.existsSync(`public/cache/${filename}`)) {
+					const url = stage.originalImage.url.replace("high", "low").replace("0.png", "1.png");
+					console.log("Caching", url, "as", filename);
+					const resp = await fetch(url);
+					if (!resp.ok) continue;
+					try {
+						fs.writeFileSync(`public/cache/${filename}`, await resp.buffer());
+					} catch (err) {
+						console.error(err);
+					}
 				}
 			}
 		}
@@ -49,8 +53,35 @@ new CronJob("* * * * 0 1", async () => {
 						p256dh: row.notif_p256dh
 					}
 				};
-				const filtersData = <RotaficationFilter>JSON.parse(row.filters);
+				for (const filter of <RotaficationFilter[]>JSON.parse(row.filters)) {
+					if (isEvenHour && filter.before % 2) continue;
+					const index = Math.floor((filter.before + 1) * 0.5);
+					let notify = false;
+					let title = "A map-mode combination you're looking for is happening ";
+					if (!filter.before) title += "right now!";
+					else title += `in ${filter.before} hours!`;
+					const modes: BattleMode[] = [];
+					const rules: BattleRule[] = [];
+					const maps: Stage[] = [];
+					if (filter.mode === "any") {
+						if (filter.rule === "ANY") {
+							if (!filter.maps.length) {
+								notify = true;
+							} else if (filter.maps.length == 1) {
+								maps.push(filter.maps[0]);
+								if (cachedSchedules.regularSchedules.nodes[index].regularMatchSetting?.vsStages.map(s => s.name).includes(filter.maps[0])) {
+									notify = true;
+									modes.push("regular");
+									rules.push("TURF_WAR");
+								}
+								if (cachedSchedules.bankaraSchedules.nodes[index].bankaraMatchSettings)
+									for (const settings of cachedSchedules.bankaraSchedules.nodes[index].bankaraMatchSettings!) {
 
+									}
+							}
+						}
+					}
+				}
 			}
 		});
 	}
