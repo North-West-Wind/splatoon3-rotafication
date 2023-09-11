@@ -29,3 +29,5 @@ export type RotaficationFilter = {
 	maps: Stage[];
 	before: number;
 }
+
+export { MatchNodeResult } from "./notifier";

@@ -12,6 +12,7 @@ import sanitize from "sanitize-filename";
 import { verbose } from "sqlite3";
 import { deepEquality } from "@santi100/equal-lib";
 import { BattleMode, BattleRule, RotaficationFilter, Stage } from "./types/rotafication";
+import { notify } from "./notifier";
 const sqlite3 = verbose();
 
 // Stage thumbnail cache setup
@@ -43,47 +44,7 @@ new CronJob("* * * * 0 1", async () => {
 				}
 			}
 		}
-		db.all("SELECT * FROM users WHERE notif_endpoint IS NOT NULL", (err, rows: { id: string, filters: string, notif_endpoint: string, notif_auth: string, notif_p256dh: string }[]) => {
-			if (err) return console.error(err);
-			for (const row of rows) {
-				const subscription = {
-					endpoint: row.notif_endpoint,
-					keys: {
-						auth: row.notif_auth,
-						p256dh: row.notif_p256dh
-					}
-				};
-				for (const filter of <RotaficationFilter[]>JSON.parse(row.filters)) {
-					if (isEvenHour && filter.before % 2) continue;
-					const index = Math.floor((filter.before + 1) * 0.5);
-					let notify = false;
-					let title = "A map-mode combination you're looking for is happening ";
-					if (!filter.before) title += "right now!";
-					else title += `in ${filter.before} hours!`;
-					const modes: BattleMode[] = [];
-					const rules: BattleRule[] = [];
-					const maps: Stage[] = [];
-					if (filter.mode === "any") {
-						if (filter.rule === "ANY") {
-							if (!filter.maps.length) {
-								notify = true;
-							} else if (filter.maps.length == 1) {
-								maps.push(filter.maps[0]);
-								if (cachedSchedules.regularSchedules.nodes[index].regularMatchSetting?.vsStages.map(s => s.name).includes(filter.maps[0])) {
-									notify = true;
-									modes.push("regular");
-									rules.push("TURF_WAR");
-								}
-								if (cachedSchedules.bankaraSchedules.nodes[index].bankaraMatchSettings)
-									for (const settings of cachedSchedules.bankaraSchedules.nodes[index].bankaraMatchSettings!) {
-
-									}
-							}
-						}
-					}
-				}
-			}
-		});
+		notify(db, cachedSchedules);
 	}
 }, null, true, undefined, null, true, 0);
 
@@ -162,7 +123,8 @@ app.post("/subscribe", jsonParser, (req, res) => {
 	});
 	const payload = JSON.stringify({
 		title: "Testing... 1, 2, 3!",
-		body: "It looks like push notification is working!"
+		body: "It looks like push notification is working!",
+		icon: "/assets/images/zoomin.png"
 	});
 	webpush.sendNotification(subscription, payload);
 });

@@ -1,8 +1,9 @@
+import { Stage } from "../rotafication";
 import { TimePeriod } from "./common";
 
 type VsStage = {
 	vsStageId: number;
-	name: string;
+	name: Stage;
 	image: { url: string };
 	id: string;
 }
