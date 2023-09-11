@@ -83,7 +83,10 @@ export default class Configuration extends React.Component {
 		if (!filters[index]) return;
 		filters[index].before = Math.round(before);//Math.round(before * 4) * 0.25;
 		this.setState({ filters });
-		this.updateFilters(filters);
+	}
+
+	pushBeforeUpdate() {
+		this.updateFilters(this.state.filters);
 	}
 
 	updateFilters(filters: RotaficationFilter[]) {
@@ -120,7 +123,7 @@ export default class Configuration extends React.Component {
 						<td colSpan={2}>
 							<div className="flex flex-hcenter flex-vcenter">
 								<span className="input-hours">Before </span>
-								<div><input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} /></div>
+								<div><input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} onBlur={() => this.pushBeforeUpdate()} /></div>
 								<span className="input-hours"> Hours</span></div>
 						</td>
 					</tr>
@@ -136,7 +139,7 @@ export default class Configuration extends React.Component {
 						</div>
 					</td>
 					<td><div className="flex flex-hcenter flex-vcenter">
-						<div><input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} /><span className="input-hours">Hours</span></div>
+						<div><input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} onBlur={() => this.pushBeforeUpdate()} /><span className="input-hours">Hours</span></div>
 					</div></td>
 				</tr>);
 			}
