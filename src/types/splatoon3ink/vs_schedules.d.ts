@@ -16,7 +16,7 @@ type VsRule = {
 type MatchSetting = {
 	__isVsSetting: "RegularMatchSetting" | "BankaraMatchSetting" | "XMatchSetting" | "LeagueMatchSetting" | "FestMatchSetting";
 	__typename: "RegularMatchSetting" | "BankaraMatchSetting" | "XMatchSetting" | "LeagueMatchSetting" | "FestMatchSetting";
-	vsStages: VsStage[2];
+	vsStages: VsStage[];
 	vsRule: VsRule;
 }
 
@@ -58,7 +58,7 @@ type FestMatchSetting = MatchSetting & {
 }
 
 type ScheduleNode = TimePeriod & {
-	festMatchSettings?: { __typename: "FestMatchSetting" }[2];
+	festMatchSettings?: { __typename: "FestMatchSetting" }[];
 }
 
 type RegularScheduleNode = ScheduleNode & {
@@ -66,7 +66,7 @@ type RegularScheduleNode = ScheduleNode & {
 }
 
 type BankaraScheduleNode = ScheduleNode & {
-	bankaraMatchSettings?: BankaraMatchSetting[2];
+	bankaraMatchSettings?: BankaraMatchSetting[];
 }
 
 type XScheduleNode = ScheduleNode & {
@@ -79,23 +79,23 @@ type EventScheduleNode = ScheduleNode & {
 }
 
 type FestSchduleNode = ScheduleNode & {
-	festMatchSettings?: FestMatchSetting[2];
+	festMatchSettings?: FestMatchSetting[];
 }
 
 type RegularSchedules = {
-	nodes: RegularScheduleNode[12];
+	nodes: RegularScheduleNode[];
 }
 
 type BankaraSchedules = {
-	nodes: BankaraScheduleNode[12];
+	nodes: BankaraScheduleNode[];
 }
 
 type XSchedules = {
-	nodes: XScheduleNode[12];
+	nodes: XScheduleNode[];
 }
 
 type EventSchedules = {
-	nodes: EventScheduleNode[2];
+	nodes: EventScheduleNode[];
 }
 
 export type VsSchedules = {
