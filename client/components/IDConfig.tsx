@@ -3,6 +3,7 @@ import React from "react";
 import Toggle from "react-toggle";
 import "react-toggle/style.css";
 import { askPermission, subscribeUserToPush } from "../helpers/subscription";
+import Rodal from "rodal";
 
 const ID_LENGTH = 12;
 
@@ -14,7 +15,8 @@ export default class IDConfig extends React.Component {
 		canNotification: boolean,
 		hasNotification: boolean,
 		subscribing: boolean, // prevent toggle spam
-		subscribed: boolean
+		subscribed: boolean,
+		notification?: any
 	};
 
 	constructor(props: object) {
@@ -45,6 +47,20 @@ export default class IDConfig extends React.Component {
 			const filters = e.detail.filters;
 			try {
 				await fetch("/filters", { headers: { "Authorization": "Bearer " + this.state.id, "Content-Type": "application/json" }, method: "POST", body: JSON.stringify({ filters }) });
+			} catch (err) { console.error(err); }
+		});
+		window.addEventListener("weHaveNotif", (e: any) => {
+			this.setState({ notification: e.detail.payload });
+			new Audio("/assets/sounds/notif.wav").play();
+		});
+		window.addEventListener("weNeedNotif", async () => {
+			if (this.state.subscribed) return;
+			try {
+				const res = await fetch("/should-notify", { headers: { "Authorization": "Bearer " + this.state.id } });
+				if (res.ok) {
+					this.setState({ notification: (await res.json()).notif });
+					new Audio("/assets/sounds/notif.wav").play();
+				}
 			} catch (err) { console.error(err); }
 		});
 	}
@@ -122,6 +138,20 @@ export default class IDConfig extends React.Component {
 				</>}
 				<div className="button sync" onClick={() => this.sync()}>Sync</div>
 			</div>
+			<Rodal
+				visible={this.state.notification}
+				onClose={() => this.setState({ notification: undefined })}
+				animation="tv"
+				className="about"
+			>
+				<div className="about-border"></div>
+				<div className="about-background"></div>
+				<div className="flex flex-hcenter flex-vcenter" style={{ height: "100%", overflowY: "scroll" }}>
+					<div style={{ height: "100%" }}>
+						<h1>BATTLE TIME!</h1>
+					</div>
+				</div>
+			</Rodal>
 		</div>
 	}
 }

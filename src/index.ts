@@ -13,6 +13,7 @@ import { deepEquality } from "@santi100/equal-lib";
 import { notify, ungrantedNotify } from "./helpers/notifier";
 import { getId } from "./helpers/express";
 import { createUser, deleteSubscription, getRow, updateFilters, updateSubscription, userExists } from "./helpers/database";
+import { Cron } from "croner";
 const sqlite3 = verbose();
 
 // Stage thumbnail cache setup
@@ -22,7 +23,7 @@ if (!fs.existsSync("public/cache")) fs.mkdirSync("public/cache");
 let cachedSchedules: Splatoon3InkSchedules;
 // One second buffer to make sure splatoon3.ink has updated
 //           v
-new CronJob("1 0 * * * *", async () => {
+Cron("1 0 * * * *", async () => {
 	const isEvenHour = !(new Date().getHours() % 2);
 	const res = await fetch("https://splatoon3.ink/data/schedules.json");
 	if (res.ok) {
@@ -46,7 +47,7 @@ new CronJob("1 0 * * * *", async () => {
 		}
 		notify(db, cachedSchedules);
 	}
-}, null, true, undefined, null, true, 0);
+});
 
 // Database setup
 const db = new sqlite3.Database("users.db");

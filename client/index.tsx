@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
+import { Cron } from "croner";
 
 //import "./helpers/subscription";
 
@@ -10,3 +11,7 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById("app")
 );
+
+Cron("2 0 * * * *", () => {
+  window.dispatchEvent(new Event("weNeedNotif"));
+});

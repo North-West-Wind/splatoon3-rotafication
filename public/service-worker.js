@@ -6,5 +6,5 @@ self.addEventListener('push', event => {
 		icon: data.icon || "/assets/images/zoomin.png"
 	});
 
-	new Audio("assets/sounds/notif.wav").play();
+	self.dispatchEvent(new CustomEvent("weHaveNotif", { detail: { payload: data } }));
 });
