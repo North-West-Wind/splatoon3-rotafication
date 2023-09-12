@@ -1,5 +1,5 @@
 body {
-	background-image: url("assets/images/background.png");
+	background-image: url("assets/images/background.svg");
 	color: white;
 	margin: 0;
 	top: 0;
@@ -71,6 +71,7 @@ h1 {
 	border-color: white;
 	border-style: solid;
 	border-width: .5rem;
+	z-index: -1;
 }
 
 .about-background {
@@ -82,7 +83,7 @@ h1 {
 	height: 100%;
 	background-image: url("assets/images/background.png");
 	filter: brightness(50%);
-	z-index: -1;
+	z-index: -2;
 }
 
 .about img {
@@ -299,4 +300,8 @@ input[type=number]::-webkit-outer-spin-button {
 .toggle-label {
 	font-size: 2rem;
 	margin: 0 1rem;
+}
+
+.notif-child {
+	margin: 1rem;
 }

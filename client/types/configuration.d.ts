@@ -17,7 +17,7 @@ export type Stage =
 	"Mincemeat Metalworks" |
 	"Museum D'Alfonsino" |
 	"Scorch Gorge" |
-	"Shipshape Cargo Co" |
+	"Shipshape Cargo Co." |
 	"Sturgeon Shipyard" |
 	"Um'ami Ruins" |
 	"Undertow Spillway" |

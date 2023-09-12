@@ -5,6 +5,4 @@ self.addEventListener('push', event => {
 		...data,
 		icon: data.icon || "/assets/images/zoomin.png"
 	});
-
-	self.dispatchEvent(new CustomEvent("weHaveNotif", { detail: { payload: data } }));
 });

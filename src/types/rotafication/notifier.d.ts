@@ -5,3 +5,10 @@ export type MatchNodeResult = {
 	rule: BattleRule;
 	maps: Stage[];
 }
+
+export type Payload = {
+	title: string;
+	body: string;
+	icon: string;
+	image: string;
+}

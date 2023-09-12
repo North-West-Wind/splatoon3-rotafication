@@ -66,8 +66,12 @@ type RegularScheduleNode = ScheduleNode & {
 	regularMatchSetting?: RegularMatchSetting;
 }
 
-type BankaraScheduleNode = ScheduleNode & {
+type RawBankaraScheduleNode = ScheduleNode & {
 	bankaraMatchSettings?: BankaraMatchSetting[];
+}
+
+type BankaraScheduleNode = ScheduleNode & {
+	bankaraMatchSetting?: BankaraMatchSetting;
 }
 
 type XScheduleNode = ScheduleNode & {
@@ -79,12 +83,20 @@ type EventScheduleNode = ScheduleNode & {
 	timePeriods: TimePeriod[];
 }
 
-type FestSchduleNode = ScheduleNode & {
+type RawFestScheduleNode = ScheduleNode & {
 	festMatchSettings?: FestMatchSetting[];
+}
+
+type FestScheduleNode = ScheduleNode & {
+	festMatchSetting?: FestMatchSetting;
 }
 
 type RegularSchedules = {
 	nodes: RegularScheduleNode[];
+}
+
+type RawBankaraSchedules = {
+	nodes: RawBankaraScheduleNode[];
 }
 
 type BankaraSchedules = {
@@ -99,9 +111,28 @@ type EventSchedules = {
 	nodes: EventScheduleNode[];
 }
 
-export type VsSchedules = {
+type RawFestSchedules = {
+	nodes: RawFestScheduleNode[];
+}
+
+type FestSchedules = {
+	nodes: FestScheduleNode[];
+}
+
+export type RawVsSchedules = {
 	regularSchedules: RegularSchedules;
-	bankaraSchedules: BankaraSchedules;
+	bankaraSchedules: RawBankaraSchedules;
 	xSchedules: XSchedules;
 	eventSchedules: EventSchedules;
+	festSchedules: RawFestSchedules;
+}
+
+export type VsSchedules = {
+	regularSchedules: RegularSchedules;
+	bankaraChallengeSchedules: BankaraSchedules;
+	bankaraOpenSchedules: BankaraSchedules;
+	xSchedules: XSchedules;
+	eventSchedules: EventSchedules;
+	festChallengeSchedules: FestSchedules;
+	festRegularSchedules: FestSchedules;
 }

@@ -1,56 +1,21 @@
 import bodyParser from "body-parser";
-import { CronJob } from "cron";
 import "dotenv/config";
 import express from "express";
 import * as fs from "fs";
-import fetch from "node-fetch";
 import path from "path";
 import webpush from "web-push";
-import { Splatoon3InkSchedules, Splatoon3InkSchedulesResponse } from "./types/splatoon3ink";
 import sanitize from "sanitize-filename";
 import { verbose } from "sqlite3";
 import { deepEquality } from "@santi100/equal-lib";
-import { notify, ungrantedNotify } from "./helpers/notifier";
+import { ungrantedNotify } from "./helpers/notifier";
 import { getId } from "./helpers/express";
 import { createUser, deleteSubscription, getRow, updateFilters, updateSubscription, userExists } from "./helpers/database";
-import { Cron } from "croner";
+// Cron job setup
+import { getSchedules } from "./helpers/cron";
 const sqlite3 = verbose();
 
-// Stage thumbnail cache setup
-if (!fs.existsSync("public/cache")) fs.mkdirSync("public/cache");
-
-// Cron job setup
-let cachedSchedules: Splatoon3InkSchedules;
-// One second buffer to make sure splatoon3.ink has updated
-//           v
-Cron("1 0 * * * *", async () => {
-	const isEvenHour = !(new Date().getHours() % 2);
-	const res = await fetch("https://splatoon3.ink/data/schedules.json");
-	if (res.ok) {
-		if (isEvenHour) {
-			const data = (<Splatoon3InkSchedulesResponse>await res.json()).data;
-			if (!cachedSchedules) cachedSchedules = data;
-			for (const stage of data.vsStages.nodes) {
-				const filename = sanitize(stage.name.toLowerCase().replace(/ /g, "_")) + ".png";
-				if (!fs.existsSync(`public/cache/${filename}`)) {
-					const url = stage.originalImage.url.replace("high", "low").replace("0.png", "1.png");
-					console.log("Caching", url, "as", filename);
-					const resp = await fetch(url);
-					if (!resp.ok) continue;
-					try {
-						fs.writeFileSync(`public/cache/${filename}`, await resp.buffer());
-					} catch (err) {
-						console.error(err);
-					}
-				}
-			}
-		}
-		notify(db, cachedSchedules);
-	}
-});
-
 // Database setup
-const db = new sqlite3.Database("users.db");
+export const db = new sqlite3.Database("users.db");
 db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", (err, row) => {
 	if (err) throw err;
 	if (!row) db.run("CREATE TABLE users (id CHAR(8) PRIMARY KEY, filters JSON NOT NULL, notif_endpoint VARCHAR(255), notif_auth VARCHAR(255), notif_p256dh VARCHAR(255))");
@@ -126,7 +91,7 @@ app.get("/should-notify", async (req, res) => {
 	if (!id) return;
 	try {
 		if (!(await userExists(db, id))) res.status(404).json({ success: false, error: "User not found" });
-		else res.json({ success: true, notif: await ungrantedNotify(db, cachedSchedules, id) });
+		else res.json({ success: true, notif: await ungrantedNotify(db, getSchedules(), id) });
 	} catch (err: any) {
 		console.error(err);
 		res.status(500).json({ success: false, error: err.message });

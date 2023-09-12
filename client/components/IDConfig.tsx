@@ -4,6 +4,7 @@ import Toggle from "react-toggle";
 import "react-toggle/style.css";
 import { askPermission, subscribeUserToPush } from "../helpers/subscription";
 import Rodal from "rodal";
+import { Payload } from "../types/notifier";
 
 const ID_LENGTH = 12;
 
@@ -16,7 +17,9 @@ export default class IDConfig extends React.Component {
 		hasNotification: boolean,
 		subscribing: boolean, // prevent toggle spam
 		subscribed: boolean,
-		notification?: any
+		notifications?: Payload[],
+		rodalWidth: number,
+		rodalHeight: number
 	};
 
 	constructor(props: object) {
@@ -28,7 +31,9 @@ export default class IDConfig extends React.Component {
 			canNotification: 'serviceWorker' in navigator && 'PushManager' in window,
 			hasNotification: Notification.permission === "granted",
 			subscribing: false,
-			subscribed: false
+			subscribed: false,
+			rodalWidth: window.innerWidth * 0.7,
+			rodalHeight: window.innerHeight * 0.8
 		};
 		else this.state = {
 			id: Math.random().toString(16).slice(2, ID_LENGTH + 2),
@@ -36,7 +41,9 @@ export default class IDConfig extends React.Component {
 			canNotification: 'serviceWorker' in navigator && 'PushManager' in window,
 			hasNotification: Notification.permission === "granted",
 			subscribing: false,
-			subscribed: false
+			subscribed: false,
+			rodalWidth: window.innerWidth * 0.7,
+			rodalHeight: window.innerHeight * 0.8
 		};
 		this.updateFilters(this.state.id);
 		window.addEventListener("weHaveCookies", () => {
@@ -49,16 +56,11 @@ export default class IDConfig extends React.Component {
 				await fetch("/filters", { headers: { "Authorization": "Bearer " + this.state.id, "Content-Type": "application/json" }, method: "POST", body: JSON.stringify({ filters }) });
 			} catch (err) { console.error(err); }
 		});
-		window.addEventListener("weHaveNotif", (e: any) => {
-			this.setState({ notification: e.detail.payload });
-			new Audio("/assets/sounds/notif.wav").play();
-		});
 		window.addEventListener("weNeedNotif", async () => {
-			if (this.state.subscribed) return;
 			try {
 				const res = await fetch("/should-notify", { headers: { "Authorization": "Bearer " + this.state.id } });
 				if (res.ok) {
-					this.setState({ notification: (await res.json()).notif });
+					this.setState({ notifications: (await res.json()).notif });
 					new Audio("/assets/sounds/notif.wav").play();
 				}
 			} catch (err) { console.error(err); }
@@ -123,6 +125,25 @@ export default class IDConfig extends React.Component {
 	}
 	
 	render() {
+		let notifNode: React.ReactNode[] = [];
+		if (this.state.notifications) {
+			for (const notif of this.state.notifications) {
+				const [modeString, ruleString, mapsString] = notif.body.split("\n");
+				notifNode.push(<>
+					<hr />
+					<div className="flex flex-hcenter flex-vcenter">
+						<div className="notif-child">
+							<h2>Mode(s)</h2>
+							<p>{modeString.slice(9)}</p>
+						</div>
+						<div className="notif-child">
+							<h2>Rule(s)</h2>
+							<p>{ruleString.slice(9)}</p>
+						</div>
+					</div>
+				</>);
+			}
+		}
 		return <div className="card">
 			<h1 style={{ marginBottom: 0 }}>Your ID</h1>
 			<h2 style={{ margin: 0, lineHeight: "2rem" }}>This can sync the filters across devices!</h2>
@@ -139,8 +160,11 @@ export default class IDConfig extends React.Component {
 				<div className="button sync" onClick={() => this.sync()}>Sync</div>
 			</div>
 			<Rodal
-				visible={this.state.notification}
-				onClose={() => this.setState({ notification: undefined })}
+				width={this.state.rodalWidth}
+				height={this.state.rodalHeight}
+				visible={!!this.state.notifications}
+				onClose={() => this.setState({ notifications: undefined })}
+				showCloseButton={false}
 				animation="tv"
 				className="about"
 			>
@@ -149,6 +173,7 @@ export default class IDConfig extends React.Component {
 				<div className="flex flex-hcenter flex-vcenter" style={{ height: "100%", overflowY: "scroll" }}>
 					<div style={{ height: "100%" }}>
 						<h1>BATTLE TIME!</h1>
+						{notifNode}
 					</div>
 				</div>
 			</Rodal>
