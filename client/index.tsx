@@ -12,7 +12,4 @@ ReactDOM.render(
   document.getElementById("app")
 );
 
-Cron("2 0 * * * *", () => {
-  window.dispatchEvent(new Event("weNeedNotif"));
-});
-window.dispatchEvent(new Event("weNeedNotif"));
+Cron("5 0 * * * *", () => window.dispatchEvent(new Event("weNeedNotif")));

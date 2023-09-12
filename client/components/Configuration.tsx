@@ -121,7 +121,7 @@ export default class Configuration extends React.Component {
 					</tr>
 					<tr>
 						<td colSpan={2}>
-							<div className="flex flex-hcenter flex-vcenter">
+							<div className="flex flex-hcenter flex-vcenter" style={{ marginBottom: "1rem" }}>
 								<span className="input-hours">Before </span>
 								<div><input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} onBlur={() => this.pushBeforeUpdate()} /></div>
 								<span className="input-hours"> Hours</span></div>

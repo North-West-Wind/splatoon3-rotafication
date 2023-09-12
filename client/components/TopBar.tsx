@@ -22,6 +22,7 @@ export default class TopBar extends React.Component {
 	render(): React.ReactNode {
 		return <div className="topbar">
 			<div className="flex flex-vcenter banner">
+				<img src="/assets/images/icon.svg" />
 				<h1>Rota-fication</h1>
 				<h2 onClick={() => this.toggleAboutOpened()}>ℹ️ Info</h2>
 			</div>

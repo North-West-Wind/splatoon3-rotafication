@@ -8,6 +8,12 @@ body {
 
 h1 {
 	font-family: Splatoon1;
+	font-size: min(2rem, 6vw);
+}
+
+h2 {
+	font-family: Splatoon2;
+	font-size: min(2rem, 5vw);
 }
 
 .topbar {
@@ -33,6 +39,11 @@ h1 {
 .topbar>.banner>h2:hover {
 	cursor: pointer;
 	text-decoration: underline;
+}
+
+.topbar>.banner>img {
+	aspect-ratio: 1/1;
+	height: 4rem;
 }
 
 .flex {
@@ -81,15 +92,23 @@ h1 {
 	top: 0;
 	width: 100%;
 	height: 100%;
-	background-image: url("assets/images/background.png");
+	background-image: url("assets/images/background.svg");
 	filter: brightness(50%);
 	z-index: -2;
+}
+
+.about p {
+	margin: 0;
 }
 
 .about img {
 	position: relative;
 	width: 40%;
 	height: auto;
+}
+
+.about img.icon {
+	width: 20%;
 	border-radius: 50%;
 }
 
@@ -161,7 +180,7 @@ tr.borderless {
 	height: 8rem;
 }
 
-.whatever img.map {
+img.map {
 	aspect-ratio: 2/1;
 	width: 100%;
 	height: auto;
@@ -169,7 +188,7 @@ tr.borderless {
 	margin: .5rem;
 }
 
-.whatever .map-container {
+.map-container {
 	font-size: 2rem;
 }
 
@@ -223,12 +242,12 @@ input.input-hours {
 	font-size: 2rem;
 	font-family: Splatoon1;
 	width: 80%;
-	padding: .5rem;
+	padding: .25rem;
 	text-align: center;
 	background-color: transparent;
 	color: white;
-	border-radius: 2rem;
-	border-width: .5rem;
+	border-radius: 1rem;
+	border-width: .25rem;
 	border-style: solid;
 	border-color: white;
 }
@@ -267,16 +286,12 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .button {
-	font-size: 2rem;
+	font-size: min(2rem, 6vw);
 	margin-top: 1rem;
 	background-color: #43b1fc;
 	padding: 0 1rem;
 	border-radius: 1rem;
 	transition: filter .3s ease;
-}
-
-.rodal .button {
-	z-index: 69420;
 }
 
 .button:hover {
@@ -285,6 +300,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .button.sync {
+	margin-top: 0;
 	margin-left: auto;
 }
 
@@ -298,10 +314,29 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .toggle-label {
-	font-size: 2rem;
+	font-size: min(2rem, 6vw);
 	margin: 0 1rem;
 }
 
 .notif-child {
+	width: 100%;
 	margin: 1rem;
+	font-size: 1.5rem;
+	text-align: center;
+}
+
+.notif-child.map-container {
+	width: 100%;
+	margin: 1rem;
+}
+
+.notif-child h2 {
+	margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  display: block;
+	font-size: 1.75rem;
+  line-height: 2rem; /* a */
+  max-height: 2rem; /* a x number of line to show (ex : 2 line)  */
 }

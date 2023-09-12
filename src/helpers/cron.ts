@@ -14,7 +14,7 @@ let cachedSchedules: Splatoon3InkSchedules;
 // One second buffer to make sure splatoon3.ink has updated
 //    v
 Cron("1 0 * * * *", cronJob);
-cronJob(false); // change this back to true after debugging
+cronJob(true); // change this back to true after debugging
 
 async function cronJob(forced = false) {
 	const isEvenHour = !(new Date().getHours() % 2);

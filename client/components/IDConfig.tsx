@@ -68,6 +68,8 @@ export default class IDConfig extends React.Component {
 			try {
 				const res = await fetch("/should-notify", { headers: { "Authorization": "Bearer " + this.state.id } });
 				if (res.ok) {
+					const notif = (await res.json()).notif;
+					if (!notif.length) return;
 					this.setState({ notifications: (await res.json()).notif });
 					new Audio("/assets/sounds/notif.wav").play();
 				}
@@ -140,29 +142,48 @@ export default class IDConfig extends React.Component {
 				const splitMaps = mapsString.slice(6).split(", ");
 				const mapsNodes: React.ReactNode[] = [];
 				for (let ii = 0; ii < splitMaps.length; ii += 2) {
-					mapsNodes.push(<div className="flex flex-hcenter flex-vcenter">
-						<div className="map-container">
-							<h2>{splitMaps[ii]}</h2>
-							<img src={`get-thumb/${encodeURIComponent(splitMaps[ii])}`} className="map" />
-						</div>
-						{splitMaps[ii+1] && <div className="map-container">
-							<h2>{splitMaps[ii+1]}</h2>
-							<img src={`get-thumb/${encodeURIComponent(splitMaps[ii+1])}`} className="map" />
-						</div>}
+					const map1Node = <div className="map-container notif-child">
+						<h2>{splitMaps[ii]}</h2>
+						<img src={`get-thumb/${encodeURIComponent(splitMaps[ii])}`} className="map" />
+					</div>;
+					const map2Node = splitMaps[ii+1] ? <div className="map-container notif-child">
+						<h2>{splitMaps[ii+1]}</h2>
+						<img src={`get-thumb/${encodeURIComponent(splitMaps[ii+1])}`} className="map" />
+					</div> : undefined;
+					if (this.state.vertical) mapsNodes.push(<>
+						<div className="flex flex-hcenter flex-vcenter">{map1Node}</div>
+						{map2Node && <div className="flex flex-hcenter flex-vcenter">{map2Node}</div>}
+					</>);
+					else mapsNodes.push(<div className="flex flex-hcenter flex-vcenter">
+						{map1Node}
+						{map2Node}
 					</div>);
 				}
-				notifNodes.push(<>
+				const modeNode = <div className="notif-child">
+					<h2>Mode(s)</h2>
+					<div className="flex flex-vcenter flex-hcenter">
+						<ul>{modeString.slice(9).split(", ").map(m => <li>{m}</li>)}</ul>
+					</div>
+				</div>;
+				const ruleNode = <div className="notif-child">
+					<h2>Rule(s)</h2>
+					<div className="flex flex-vcenter flex-hcenter">
+						<ul>{ruleString.slice(9).split(", ").map(r => <li>{r}</li>)}</ul>
+					</div>
+				</div>;
+				if (this.state.vertical) notifNodes.push(<>
+					<hr />
+					<div className="flex flex-hcenter flex-vcenter">{modeNode}</div>
+					<div className="flex flex-hcenter flex-vcenter">{ruleNode}</div>
+					{mapsNodes}
+				</>);
+				else notifNodes.push(<>
 					<hr />
 					<div className="flex flex-hcenter flex-vcenter">
-						<div className="notif-child">
-							<h2>Mode(s)</h2>
-							<ul>{modeString.slice(9).split(", ").map(m => <li>{m}</li>)}</ul>
-						</div>
-						<div className="notif-child">
-							<h2>Rule(s)</h2>
-							<ul>{ruleString.slice(9).split(", ").map(r => <li>{r}</li>)}</ul>
-						</div>
+						{modeNode}
+						{ruleNode}
 					</div>
+					{mapsNodes}
 				</>);
 			}
 		}
@@ -174,7 +195,7 @@ export default class IDConfig extends React.Component {
 			<div className="flex">
 				<input type="text" className="input-id" value={this.state.tmpId || this.state.id} onChange={(e) => this.changeId(e.target.value)} />
 			</div>
-			<div className="flex flex-vcenter">
+			<div className="flex flex-vcenter" style={{ marginTop: "1rem" }}>
 				{this.state.canNotification && <>
 					<Toggle className="toggle" checked={this.state.subscribed} onChange={() => this.toggleNotification()} />
 					<span className="toggle-label">Notifications</span>
@@ -193,7 +214,7 @@ export default class IDConfig extends React.Component {
 				<div className="about-border"></div>
 				<div className="about-background"></div>
 				<div className="flex flex-hcenter flex-vcenter" style={{ height: "100%", overflowY: "scroll" }}>
-					<div style={{ height: "100%" }}>
+					<div style={{ height: "100%", width: "100%" }}>
 						<h1>BATTLE TIME!</h1>
 						{notifNodes}
 					</div>

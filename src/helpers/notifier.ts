@@ -36,6 +36,8 @@ const RULE_NAME_MAP: { [key: string]: string } = {
 
 const HOUR_MS = 60 * 60 * 1000;
 
+const notificationCache = new Map<string, Payload[]>();
+
 export function notify(db: Database, schedules: Splatoon3InkSchedules) {
 	db.all("SELECT * FROM users WHERE notif_endpoint IS NOT NULL", (err, rows: { id: string, filters: string, notif_endpoint: string, notif_auth: string, notif_p256dh: string }[]) => {
 		if (err) return console.error(err);
@@ -47,16 +49,26 @@ export function notify(db: Database, schedules: Splatoon3InkSchedules) {
 					p256dh: row.notif_p256dh
 				}
 			};
+			const payloads: Payload[] = [];
 			for (const filter of <RotaficationFilter[]>JSON.parse(row.filters)) {
 				const payload = getPayload(schedules, filter);
-				if (payload) return webpush.sendNotification(subscription, JSON.stringify(payload));
+				if (payload) {
+					webpush.sendNotification(subscription, JSON.stringify(payload));
+					payloads.push(payload);
+				}
 			}
+			notificationCache.set(row.id, payloads);
 		}
 	});
 }
 
 export async function ungrantedNotify(db: Database, schedules: Splatoon3InkSchedules, id: string) {
 	return new Promise((res, rej) => {
+		if (notificationCache.has(id)) {
+			const payloads = notificationCache.get(id);
+			notificationCache.delete(id);
+			return res(payloads);
+		}
 		db.get("SELECT id, filters FROM users WHERE id = ?", id, (err, row: { id: string, filters: string }) => {
 			if (err) return rej(err);
 			const payloads: Payload[] = [];
@@ -72,6 +84,7 @@ export async function ungrantedNotify(db: Database, schedules: Splatoon3InkSched
 function getPayload(schedules: Splatoon3InkSchedules, filter: RotaficationFilter): Payload | undefined {
 	const isEvenHour = !(new Date().getHours() % 2);
 	if (isEvenHour && filter.before % 2) return undefined;
+	else if (!isEvenHour && !(filter.before % 2)) return undefined;
 	const index = Math.floor((filter.before + 1) * 0.5);
 	let title = "A map-mode combination you're looking for is happening ";
 	if (!filter.before) title += "right now!";
