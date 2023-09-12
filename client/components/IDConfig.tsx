@@ -18,6 +18,7 @@ export default class IDConfig extends React.Component {
 		subscribing: boolean, // prevent toggle spam
 		subscribed: boolean,
 		notifications?: Payload[],
+		vertical: boolean,
 		rodalWidth: number,
 		rodalHeight: number
 	};
@@ -25,27 +26,34 @@ export default class IDConfig extends React.Component {
 	constructor(props: object) {
 		super(props);
 
-		if (Cookies.get("gave_me_cookies") && Cookies.get("id")) this.state = {
-			id: Cookies.get("id")!,
-			hasCookies: true,
+		const state = {
 			canNotification: 'serviceWorker' in navigator && 'PushManager' in window,
 			hasNotification: Notification.permission === "granted",
 			subscribing: false,
 			subscribed: false,
+			vertical: window.innerHeight > window.innerWidth,
 			rodalWidth: window.innerWidth * 0.7,
 			rodalHeight: window.innerHeight * 0.8
+		};
+
+		if (Cookies.get("gave_me_cookies") && Cookies.get("id")) this.state = {
+			id: Cookies.get("id")!,
+			hasCookies: true,
+			...state
 		};
 		else this.state = {
 			id: Math.random().toString(16).slice(2, ID_LENGTH + 2),
 			hasCookies: !!Cookies.get("gave_me_cookies"),
-			canNotification: 'serviceWorker' in navigator && 'PushManager' in window,
-			hasNotification: Notification.permission === "granted",
-			subscribing: false,
-			subscribed: false,
-			rodalWidth: window.innerWidth * 0.7,
-			rodalHeight: window.innerHeight * 0.8
+			...state
 		};
 		this.updateFilters(this.state.id);
+		window.addEventListener("resize", () => {
+			this.setState({
+				vertical: window.innerHeight > window.innerWidth,
+				rodalWidth: window.innerWidth * 0.7,
+				rodalHeight: window.innerHeight * 0.8
+			});
+		})
 		window.addEventListener("weHaveCookies", () => {
 			this.setState({ hasCookies: true });
 			Cookies.set("id", this.state.id);
@@ -125,20 +133,34 @@ export default class IDConfig extends React.Component {
 	}
 	
 	render() {
-		let notifNode: React.ReactNode[] = [];
+		const notifNodes: React.ReactNode[] = [];
 		if (this.state.notifications) {
 			for (const notif of this.state.notifications) {
 				const [modeString, ruleString, mapsString] = notif.body.split("\n");
-				notifNode.push(<>
+				const splitMaps = mapsString.slice(6).split(", ");
+				const mapsNodes: React.ReactNode[] = [];
+				for (let ii = 0; ii < splitMaps.length; ii += 2) {
+					mapsNodes.push(<div className="flex flex-hcenter flex-vcenter">
+						<div className="map-container">
+							<h2>{splitMaps[ii]}</h2>
+							<img src={`get-thumb/${encodeURIComponent(splitMaps[ii])}`} className="map" />
+						</div>
+						{splitMaps[ii+1] && <div className="map-container">
+							<h2>{splitMaps[ii+1]}</h2>
+							<img src={`get-thumb/${encodeURIComponent(splitMaps[ii+1])}`} className="map" />
+						</div>}
+					</div>);
+				}
+				notifNodes.push(<>
 					<hr />
 					<div className="flex flex-hcenter flex-vcenter">
 						<div className="notif-child">
 							<h2>Mode(s)</h2>
-							<p>{modeString.slice(9)}</p>
+							<ul>{modeString.slice(9).split(", ").map(m => <li>{m}</li>)}</ul>
 						</div>
 						<div className="notif-child">
 							<h2>Rule(s)</h2>
-							<p>{ruleString.slice(9)}</p>
+							<ul>{ruleString.slice(9).split(", ").map(r => <li>{r}</li>)}</ul>
 						</div>
 					</div>
 				</>);
@@ -173,7 +195,7 @@ export default class IDConfig extends React.Component {
 				<div className="flex flex-hcenter flex-vcenter" style={{ height: "100%", overflowY: "scroll" }}>
 					<div style={{ height: "100%" }}>
 						<h1>BATTLE TIME!</h1>
-						{notifNode}
+						{notifNodes}
 					</div>
 				</div>
 			</Rodal>
