@@ -12,6 +12,7 @@ import { getId } from "./helpers/express";
 import { createUser, getUsersRow, updateFilters, addSubscription, userExists, setNotify } from "./helpers/database";
 // Cron job setup
 import { getSchedules } from "./helpers/cron";
+import { AddressInfo } from "net";
 const sqlite3 = verbose();
 
 // Database setup
@@ -131,8 +132,6 @@ app.post("/filters", jsonParser, async (req, res) => {
 	}
 });
 
-const PORT = 3000;
-
-app.listen(PORT, () => {
-	console.log(`App listening on port ${PORT}`)
+const listener = app.listen(process.env.PORT || 3000, () => {
+	console.log(`App listening on port ${(<AddressInfo>listener.address()).port}`)
 });
