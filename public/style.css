@@ -292,6 +292,7 @@ input[type=number]::-webkit-outer-spin-button {
 	padding: 0 1rem;
 	border-radius: 1rem;
 	transition: filter .3s ease;
+	text-align: center;
 }
 
 .button:hover {
@@ -307,6 +308,10 @@ input[type=number]::-webkit-outer-spin-button {
 .button.cookies {
 	width: 100%;
 	margin: 0 1rem;
+}
+
+.button.danger {
+	background-color: #fc4343;
 }
 
 .toggle {

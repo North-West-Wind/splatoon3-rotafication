@@ -70,7 +70,7 @@ export default class IDConfig extends React.Component {
 				if (res.ok) {
 					const notif = (await res.json()).notif;
 					if (!notif.length) return;
-					this.setState({ notifications: (await res.json()).notif });
+					this.setState({ notifications: notif });
 					new Audio("/assets/sounds/notif.wav").play();
 				}
 			} catch (err) { console.error(err); }

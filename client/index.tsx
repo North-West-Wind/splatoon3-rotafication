@@ -13,3 +13,4 @@ ReactDOM.render(
 );
 
 Cron("5 0 * * * *", () => window.dispatchEvent(new Event("weNeedNotif")));
+window.dispatchEvent(new Event("weNeedNotif"));

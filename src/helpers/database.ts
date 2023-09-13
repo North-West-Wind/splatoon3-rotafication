@@ -1,7 +1,7 @@
 import { Database } from "sqlite3";
 import webpush from "web-push";
 
-export async function getRow(db: Database, id: string, columns: string[]) {
+export async function getUsersRow(db: Database, id: string, columns: string[]) {
 	return new Promise((res, rej) => {
 		db.get(`SELECT ${columns.join(", ")} FROM users WHERE id = ?`, id, (err, row) => {
 			if (err) return rej(err);
@@ -11,19 +11,20 @@ export async function getRow(db: Database, id: string, columns: string[]) {
 }
 
 export async function userExists(db: Database, id: string) {
-	return !!(await getRow(db, id, ["id"]));
+	return !!(await getUsersRow(db, id, ["id"]));
 }
 
 export async function createUser(db: Database, id: string, extra?: { filters?: string, subscription?: webpush.PushSubscription }) {
 	let columns: string[] = ["id", "filters"];
-	let params: string[] = [id];
+	let params: any[] = [id];
 	if (!extra) params.push("[]");
 	else {
 		if (extra.filters) params.push(extra.filters);
 		else params.push("[]");
 		if (extra.subscription) {
-			columns.push("notif_endpoint", "notif_auth", "notif_p256dh");
-			params.push(extra.subscription.endpoint, extra.subscription.keys.auth, extra.subscription.keys.p256dh);
+			columns.push("notif");
+			params.push(1);
+			db.run("INSERT INTO subscriptions (endpoint, auth, p256dh) VALUES (?, ?, ?)", [extra.subscription.endpoint, extra.subscription.keys.auth, extra.subscription.keys.p256dh]);
 		}
 	}
 	const query = `INSERT INTO users (${columns.join(", ")}) VALUES (${Array(columns.length).fill("?").join(", ")})`;
@@ -44,20 +45,20 @@ export async function updateFilters(db: Database, id: string, filters: string) {
 	})
 }
 
-export async function updateSubscription(db: Database, id: string, subscription: webpush.PushSubscription) {
+export async function setNotify(db: Database, id: string, state: boolean) {
 	return new Promise<void>((res, rej) => {
-		db.run("UPDATE users SET notif_endpoint = ?, notif_auth = ?, notif_p256dh = ? WHERE id = ?", [subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh, id], err => {
-			if (err) return rej(err)
+		db.run("UPDATE users SET notif = ? WHERE id = ?", [state ? 1 : 0, id], err => {
+			if (err) return rej(err);
 			res();
 		});
 	});
 }
 
-export async function deleteSubscription(db: Database, id: string) {
+export async function addSubscription(db: Database, id: string, subscription: webpush.PushSubscription) {
 	return new Promise<void>((res, rej) => {
-		db.run("UPDATE users SET notif_endpoint = NULL, notif_auth = NULL, notif_p256dh = NULL WHERE id = ?", id, err => {
+		db.run("INSERT INTO subscriptions (user_id, endpoint, auth, p256dh) VALUES (?, ?, ?, ?)", [id, subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh, id], err => {
 			if (err) return rej(err);
-			res();
+			setNotify(db, id, true).then(res).catch(rej);
 		});
 	});
 }

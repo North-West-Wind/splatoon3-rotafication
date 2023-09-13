@@ -43,6 +43,14 @@ export default class Configuration extends React.Component {
 		this.updateFilters(filters);
 	}
 
+	removeFilter(index: number) {
+		if (!confirm("Are you sure you want to remove this filter?")) return;
+		const filters = this.state.filters;
+		filters.splice(index, 1);
+		this.setState({ filters });
+		this.updateFilters(filters);
+	}
+
 	togglePickingMode(index = -1) {
 		this.setState({ pickingMode: !this.state.pickingMode, editingIndex: index });
 	}
@@ -124,7 +132,9 @@ export default class Configuration extends React.Component {
 							<div className="flex flex-hcenter flex-vcenter" style={{ marginBottom: "1rem" }}>
 								<span className="input-hours">Before </span>
 								<div><input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} onBlur={() => this.pushBeforeUpdate()} /></div>
-								<span className="input-hours"> Hours</span></div>
+								<span className="input-hours"> Hours</span>
+							</div>
+							<div className="button danger" style={{ marginBottom: "1rem" }} onClick={() => this.removeFilter(ii)}>Delete</div>
 						</td>
 					</tr>
 				</>);
@@ -139,7 +149,11 @@ export default class Configuration extends React.Component {
 						</div>
 					</td>
 					<td><div className="flex flex-hcenter flex-vcenter">
-						<div><input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} onBlur={() => this.pushBeforeUpdate()} /><span className="input-hours">Hours</span></div>
+						<div>
+							<input className="input-hours" type="number" step={1} min={0} max={24} value={filter.before} onChange={(e) => this.setBefore(ii, Number(e.target.value))} onBlur={() => this.pushBeforeUpdate()} />
+							<span className="input-hours">Hours</span>
+							<div className="button danger" onClick={() => this.removeFilter(ii)}>Delete</div>
+						</div>
 					</div></td>
 				</tr>);
 			}

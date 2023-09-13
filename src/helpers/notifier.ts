@@ -39,26 +39,32 @@ const HOUR_MS = 60 * 60 * 1000;
 const notificationCache = new Map<string, Payload[]>();
 
 export function notify(db: Database, schedules: Splatoon3InkSchedules) {
-	db.all("SELECT * FROM users WHERE notif_endpoint IS NOT NULL", (err, rows: { id: string, filters: string, notif_endpoint: string, notif_auth: string, notif_p256dh: string }[]) => {
+	db.all("SELECT id, filters FROM users WHERE notif = 1", (err, rows: { id: string, filters: string }[]) => {
 		if (err) return console.error(err);
-		for (const row of rows) {
-			const subscription = {
-				endpoint: row.notif_endpoint,
-				keys: {
-					auth: row.notif_auth,
-					p256dh: row.notif_p256dh
+		if (!rows.length) return;
+		db.all("SELECT * FROM subscriptions WHERE " + rows.map(r => `user_id = "${r.id}"`).join(" OR "), (err, subRows: { id: string, user_id: string, endpoint: string, auth: string, p256dh: string }[]) => {
+			if (err) return console.error(err);
+			for (const row of rows) {
+				const subscriptions = subRows.filter(r => r.user_id === row.id).map(r => ({
+					id: r.id,
+					endpoint: r.endpoint,
+					keys: {
+						auth: r.auth,
+						p256dh: r.p256dh
+					}
+				}));
+				const payloads: Payload[] = [];
+				for (const filter of <RotaficationFilter[]>JSON.parse(row.filters)) {
+					const payload = getPayload(schedules, filter);
+					if (payload) {
+						for (const sub of subscriptions) webpush.sendNotification(sub, JSON.stringify(payload))
+							.catch(() => db.run("DELETE FROM subscriptions WHERE id = ?", sub.id)); // Subscription died
+						payloads.push(payload);
+					}
 				}
-			};
-			const payloads: Payload[] = [];
-			for (const filter of <RotaficationFilter[]>JSON.parse(row.filters)) {
-				const payload = getPayload(schedules, filter);
-				if (payload) {
-					webpush.sendNotification(subscription, JSON.stringify(payload));
-					payloads.push(payload);
-				}
+				notificationCache.set(row.id, payloads);
 			}
-			notificationCache.set(row.id, payloads);
-		}
+		});
 	});
 }
 
@@ -86,9 +92,9 @@ function getPayload(schedules: Splatoon3InkSchedules, filter: RotaficationFilter
 	if (isEvenHour && filter.before % 2) return undefined;
 	else if (!isEvenHour && !(filter.before % 2)) return undefined;
 	const index = Math.floor((filter.before + 1) * 0.5);
-	let title = "A map-mode combination you're looking for is happening ";
-	if (!filter.before) title += "right now!";
-	else title += `in ${filter.before} hours!`;
+	let title = "BATTLE TIME";
+	if (!filter.before) title += "!";
+	else title += ` in ${filter.before} hours!`;
 	let notify = false;
 	const modes: ExtraBattleMode[] = [];
 	const rules = new Set<BattleRule>();
@@ -136,8 +142,9 @@ function getPayload(schedules: Splatoon3InkSchedules, filter: RotaficationFilter
 		return {
 			title,
 			body,
-			icon: "/assets/images/zoomin.png",
-			image: `/get-thumb/${mapArr[Math.floor(Math.random() * mapArr.length)]}`
+			icon: "/assets/images/icon.svg",
+			image: `/get-thumb/${mapArr[Math.floor(Math.random() * mapArr.length)]}`,
+			badge: "/assets/images/badge.svg"
 		};
 	} else return undefined;
 }

@@ -3,4 +3,5 @@ export type Payload = {
 	body: string;
 	icon: string;
 	image: string;
+	badge: string;
 }
