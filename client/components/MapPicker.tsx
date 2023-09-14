@@ -1,5 +1,5 @@
 import React from "react";
-import { Stage } from "../types/configuration";
+import { Stage } from "../types/rotafication";
 
 const STAGES: Stage[] = [
 	"Any",

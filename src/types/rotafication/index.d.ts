@@ -30,4 +30,4 @@ export type RotaficationFilter = {
 	before: number;
 }
 
-export { MatchNodeResult } from "./notifier";
+export { MatchNodeResult, Payload } from "./notifier";

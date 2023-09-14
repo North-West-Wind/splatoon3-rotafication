@@ -62,3 +62,12 @@ export async function addSubscription(db: Database, id: string, subscription: we
 		});
 	});
 }
+
+export async function delSubscriptions(db: Database, id: string) {
+	return new Promise<void>((res, rej) => {
+		db.run("DELETE FROM subscriptions WHERE user_id = ?", id, (err) => {
+			if (err) rej(err);
+			setNotify(db, id, false).then(res).catch(rej);
+		})
+	});
+}

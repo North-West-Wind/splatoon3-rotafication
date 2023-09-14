@@ -4,7 +4,7 @@ import Toggle from "react-toggle";
 import "react-toggle/style.css";
 import { askPermission, subscribeUserToPush } from "../helpers/subscription";
 import Rodal from "rodal";
-import { Payload } from "../types/notifier";
+import { Payload } from "../types/rotafication";
 
 const ID_LENGTH = 12;
 
@@ -81,9 +81,15 @@ export default class IDConfig extends React.Component {
 		this.setState({ tmpId });
 	}
 
-	sync() {
+	async sync() {
 		const id = this.state.tmpId || this.state.id;
 		if (!/^[\w\d]{12}$/.test(id)) return this.setState({ tmpId: undefined });
+		if (id !== this.state.id) {
+			if (!confirm("Changing ID will turn off notifications on ALL devices using this ID. Do you wish to continue?")) return;
+			this.setState({ subscribing: true });
+			await this.turnOffNotification();
+			this.setState({ subscribing: false });
+		}
 		this.setState({ id, tmpId: undefined });
 		if (this.state.hasCookies) Cookies.set("id", id);
 		this.updateFilters(id);
@@ -122,16 +128,20 @@ export default class IDConfig extends React.Component {
 				if (res.ok) this.setState({ subscribed: true });
 			} catch (err) { console.error(err); }
 			this.setState({ subscribing: false });
-		} else {
-			try {
-				const res = await fetch("/subscribe", {
-					method: 'DELETE',
-			    headers: { "Authorization": "Bearer " + this.state.id }
-				});
-				if (res.ok) this.setState({ subscribed: false });
-			} catch (err) { console.error(err); }
+		} else if (confirm("This will turn off notifications on ALL devices using this ID. Do you wish to continue?")) {
+			await this.turnOffNotification();
 			this.setState({ subscribing: false });
 		}
+	}
+
+	async turnOffNotification() {
+		try {
+			const res = await fetch("/subscribe", {
+				method: 'DELETE',
+				headers: { "Authorization": "Bearer " + this.state.id }
+			});
+			if (res.ok) this.setState({ subscribed: false });
+		} catch (err) { console.error(err); }
 	}
 	
 	render() {

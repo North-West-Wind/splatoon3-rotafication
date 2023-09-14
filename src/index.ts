@@ -9,10 +9,11 @@ import { verbose } from "sqlite3";
 import { deepEquality } from "@santi100/equal-lib";
 import { ungrantedNotify } from "./helpers/notifier";
 import { getId } from "./helpers/express";
-import { createUser, getUsersRow, updateFilters, addSubscription, userExists, setNotify } from "./helpers/database";
+import { createUser, getUsersRow, updateFilters, addSubscription, userExists, setNotify, delSubscriptions } from "./helpers/database";
 // Cron job setup
 import { getSchedules } from "./helpers/cron";
 import { AddressInfo } from "net";
+import { Payload } from "./types/rotafication";
 const sqlite3 = verbose();
 
 // Database setup
@@ -64,11 +65,12 @@ app.post("/subscribe", jsonParser, async (req, res) => {
 		else if (subscription) await addSubscription(db, id, subscription);
 		else await setNotify(db, id, true);
 		res.json({ success: true });
-		const payload = JSON.stringify({
+		const payload = JSON.stringify(<Payload>{
 			title: "Testing... 1, 2, 3!",
 			body: "It looks like push notification is working!",
 			icon: "/assets/images/icon.svg",
-			badge: "/assets/images/badge.svg"
+			badge: "/assets/images/badge.svg",
+			sound: "/assets/sounds/notif.wav"
 		});
 		webpush.sendNotification(subscription, payload);
 	} catch (err: any) {
@@ -82,7 +84,7 @@ app.delete("/subscribe", async (req, res) => {
 	if (!id) return;
 	try {
 		if (!(await userExists(db, id))) return res.status(404).json({ success: false, error: "User not found" });
-		else await setNotify(db, id, false);
+		else await delSubscriptions(db, id);
 		res.json({ success: true });
 	} catch (err: any) {
 		console.error(err);

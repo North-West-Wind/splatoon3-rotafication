@@ -1,5 +1,5 @@
 import React from "react";
-import { BattleMode, BattleRule, RotaficationFilter, Stage } from "../types/configuration";
+import { BattleMode, BattleRule, RotaficationFilter, Stage } from "../types/rotafication";
 import Rodal from "rodal";
 import 'rodal/lib/rodal.css';
 import "./css/rodal.css";

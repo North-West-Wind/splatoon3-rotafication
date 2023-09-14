@@ -144,7 +144,8 @@ function getPayload(schedules: Splatoon3InkSchedules, filter: RotaficationFilter
 			body,
 			icon: "/assets/images/icon.svg",
 			image: `/get-thumb/${mapArr[Math.floor(Math.random() * mapArr.length)]}`,
-			badge: "/assets/images/badge.svg"
+			badge: "/assets/images/badge.svg",
+			sound: "/assets/sounds/notif.wav"
 		};
 	} else return undefined;
 }
