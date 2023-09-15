@@ -56,7 +56,7 @@ export async function setNotify(db: Database, id: string, state: boolean) {
 
 export async function addSubscription(db: Database, id: string, subscription: webpush.PushSubscription) {
 	return new Promise<void>((res, rej) => {
-		db.run("INSERT INTO subscriptions (user_id, endpoint, auth, p256dh) VALUES (?, ?, ?, ?)", [id, subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh, id], err => {
+		db.run("INSERT INTO subscriptions (user_id, endpoint, auth, p256dh) VALUES (?, ?, ?, ?)", [id, subscription.endpoint, subscription.keys.auth, subscription.keys.p256dh], err => {
 			if (err) return rej(err);
 			setNotify(db, id, true).then(res).catch(rej);
 		});
