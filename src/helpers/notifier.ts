@@ -101,6 +101,7 @@ function getPayload(schedules: Splatoon3InkSchedules, filter: RotaficationFilter
 	const maps = new Set<Stage>();
 	// Checking for every mode except challenge
 	for (const mode of BATTLE_MODES) {
+		if (!(<any>schedules)[mode + "Schedules"].nodes[index]) continue;
 		let genericMode: string;
 		if (mode.startsWith("bankara")) genericMode = "bankara";
 		else if (mode.startsWith("fest")) genericMode = "fest";
