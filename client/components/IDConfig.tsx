@@ -207,7 +207,7 @@ export default class IDConfig extends React.Component {
 			</div>
 			<div className="flex flex-vcenter" style={{ marginTop: "1rem" }}>
 				{this.state.canNotification && <>
-					<Toggle className="toggle" checked={this.state.subscribed} onChange={() => this.toggleNotification()} />
+					<Toggle className="toggle" checked={this.state.hasNotification && this.state.subscribed} onChange={() => this.toggleNotification()} />
 					<span className="toggle-label">Notifications</span>
 				</>}
 				<div className="button sync" onClick={() => this.sync()}>Sync</div>
